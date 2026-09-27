@@ -49,7 +49,9 @@ private func makeConfiguredWebPage() -> WebPage {
 			WKUserScript(source: loadInjectionFile(filename), injectionTime: .atDocumentStart, forMainFrameOnly: false)
 		)
 	}
-	return WebPage(configuration: configuration)
+	let page = WebPage(configuration: configuration)
+	page.isInspectable = true
+	return page
 }
 
 private func loadInjectionFile(_ filename: String) -> String {
