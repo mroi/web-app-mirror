@@ -1,22 +1,23 @@
-BUILDCONFIG ?= release
-APPNAME     := WebAppMirror.app
-BUNDLE      := $(APPNAME)
+CONFIG ?= release
+BUNDLE = WebAppMirror.app
 
-ifeq ($(BUILDCONFIG),release)
-	BUILDARGS := -c release
-	BUILDDIR  := .build/release
+ifeq ($(CONFIG),release)
+	BUILDARGS = -c release
+	BUILDDIR = .build/release
 else
-	BUILDDIR  := .build/debug
+	BUILDDIR = .build/debug
 endif
+
+.PHONY: all build clean
 
 all: $(BUNDLE)
 
-$(BUNDLE): build
+$(BUNDLE): build WebAppMirror.plist WebAppMirror.entitlements
 	rm -rf "$(BUNDLE)"
 	mkdir -p "$(BUNDLE)/Contents/MacOS"
 	mkdir -p "$(BUNDLE)/Contents/Resources"
-	mkdir -p "$(BUNDLE)/Contents" && printf '<?xml version="1.0" encoding="UTF-8"?>\n<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">\n<plist version="1.0">\n<dict>\n\t<key>CFBundleExecutable</key>\n\t<string>WebAppMirror</string>\n\t<key>CFBundleIdentifier</key>\n\t<string>local.web-app-mirror</string>\n\t<key>CFBundleName</key>\n\t<string>WebAppMirror</string>\n\t<key>CFBundleShortVersionString</key>\n\t<string>1.0</string>\n\t<key>CFBundleVersion</key>\n\t<string>1</string>\n\t<key>LSMinimumSystemVersion</key>\n\t<string>26.0</string>\n\t<key>NSHighResolutionCapable</key>\n\t<true/>\n</dict>\n</plist>\n' > "$(BUNDLE)/Contents/Info.plist"
 	cp "$(BUILDDIR)/WebAppMirror" "$(BUNDLE)/Contents/MacOS/WebAppMirror"
+	cp WebAppMirror.plist "$(BUNDLE)/Contents/Info.plist"
 	codesign --force --sign - --entitlements WebAppMirror.entitlements "$(BUNDLE)"
 
 build:
@@ -25,5 +26,3 @@ build:
 clean:
 	rm -rf "$(BUNDLE)"
 	swift package clean
-
-.PHONY: all clean build
