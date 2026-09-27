@@ -8,7 +8,7 @@ else
 	BUILDDIR = .build/debug
 endif
 
-.PHONY: all build clean
+.PHONY: all build run clean
 
 all: $(BUNDLE)
 
@@ -22,6 +22,9 @@ $(BUNDLE): build WebAppMirror.plist WebAppMirror.entitlements
 
 build:
 	swift build $(BUILDARGS)
+
+run:
+	open "$(BUNDLE)"
 
 clean:
 	rm -rf "$(BUNDLE)"
