@@ -43,5 +43,10 @@ private func makeConfiguredWebPage() -> WebPage {
 			WKUserScript(source: script, injectionTime: .atDocumentEnd, forMainFrameOnly: false)
 		)
 	}
+	if !userJavaScript.isEmpty {
+		configuration.userContentController.addUserScript(
+			WKUserScript(source: userJavaScript, injectionTime: .atDocumentStart, forMainFrameOnly: false)
+		)
+	}
 	return WebPage(configuration: configuration)
 }

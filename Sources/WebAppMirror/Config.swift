@@ -11,6 +11,11 @@ let userCSS = """
 /* injected user CSS */
 """
 
+// Custom JavaScript injected into each page and iframe after its document is parsed.
+let userJavaScript = """
+// injected user JavaScript
+"""
+
 // URL path prefixes to cache. A URL is cached if its path starts with any of these.
 let cachePrefixes = [
 	"/static/",
