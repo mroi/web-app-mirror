@@ -8,7 +8,7 @@ struct WebContentView: View {
 	var body: some View {
 		Group {
 			if isProxyReady {
-				WebView(url: URL(string: "http://127.0.0.1:8080/")!)
+				WebView(url: startingURL)
 					.ignoresSafeArea()
 			} else {
 				ProgressView("Starting...")

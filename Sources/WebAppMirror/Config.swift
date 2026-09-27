@@ -1,6 +1,10 @@
 import Foundation
 
-let targetURL = "https://example.com"
+// The URL the WebView opens through the local proxy.
+let startingURL = URL(string: "http://127.0.0.1:8080/")!
+
+// The origin the proxy forwards requests to.
+let proxyBaseURL = URL(string: "https://example.com")!
 
 // URL path prefixes to cache. A URL is cached if its path starts with any of these.
 let cachePrefixes = [

@@ -7,11 +7,7 @@ struct ProxyHandler: Sendable {
 	let cache: FileCache
 
 	func handle(_ request: Request, context: BasicRequestContext) async throws -> Response {
-		guard let base = URL(string: targetURL) else {
-			return Response(status: .badRequest)
-		}
-
-		var components = URLComponents(url: base, resolvingAgainstBaseURL: true)!
+		var components = URLComponents(url: proxyBaseURL, resolvingAgainstBaseURL: true)!
 		components.path = request.uri.path.isEmpty ? "/" : request.uri.path
 		if let query = request.uri.query {
 			components.query = query
