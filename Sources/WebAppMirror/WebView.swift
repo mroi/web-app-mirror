@@ -14,6 +14,7 @@ struct WebContentView: View {
 				ProgressView("Starting...")
 			}
 		}
+		.windowFullScreenBehavior(.enabled)
 		.task {
 			appState.startProxy()
 			isProxyReady = true
