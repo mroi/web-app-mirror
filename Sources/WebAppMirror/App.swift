@@ -23,11 +23,10 @@ class AppState {
 	private var server: ProxyServer?
 
 	func startProxy() {
-		let cacheDir = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
-			.appendingPathComponent("Mirror")
-		let logDir = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask).first!
+		let cacheDir = URL.documentsDirectory.appending(path: "Mirror")
+		let logDir = URL.cachesDirectory
 			.deletingLastPathComponent()
-			.appendingPathComponent("Logs")
+			.appending(path: "Logs")
 		let server = ProxyServer(port: 8080)
 		self.server = server
 		server.start(cacheDirectory: cacheDir, logDirectory: logDir)

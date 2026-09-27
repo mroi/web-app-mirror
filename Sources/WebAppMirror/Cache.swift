@@ -69,12 +69,9 @@ actor FileCache {
 		return directory.appendingPathComponent(path, isDirectory: false)
 	}
 
-	private func mimeType(for extension: String) -> String? {
-		guard !`extension`.isEmpty else { return nil }
-		if let type = UTType(filenameExtension: `extension`) {
-			return type.preferredMIMEType
-		}
-		return nil
+	private func mimeType(for fileExtension: String) -> String? {
+		guard !fileExtension.isEmpty else { return nil }
+		return UTType(filenameExtension: fileExtension)?.preferredMIMEType
 	}
 
 	private func log(_ message: String) {
