@@ -10,6 +10,7 @@ struct WebAppMirror: App {
 		WindowGroup {
 			WebContentView().environment(appState)
 		}
+		.defaultSize(width: 960, height: 540 + 32)
 	}
 }
 
