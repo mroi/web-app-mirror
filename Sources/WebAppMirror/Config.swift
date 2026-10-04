@@ -9,6 +9,9 @@ let proxyBaseURL = URL(string: "https://example.com")!
 // Optional Common Name of the Keychain identity used to serve the proxy via HTTPS.
 let proxyCertificateCommonName: String? = nil
 
+// Origins allowed to access proxied resources through CORS.
+let corsAllowedOrigins: Set<String>()
+
 // Custom CSS and JavaScript files in Sources/WebAppMirror/Resources to inject.
 let userCSSFiles = Array<String>()
 let userJavaScriptFiles = Array<String>()

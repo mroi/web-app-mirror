@@ -5,27 +5,87 @@ import NIOCore
 
 struct ProxyHandler: Sendable {
 	let cache: FileCache
+	private let allowedMethods = "GET, HEAD, POST, PUT, PATCH, DELETE, OPTIONS"
 
 	func handle(_ request: Request, context: BasicRequestContext) async throws -> Response {
+		if request.method.rawValue == "OPTIONS" {
+			return Response(
+				status: .init(code: 204),
+				headers: makeHeaders(corsHeaders(for: request, preflight: true))
+			)
+		}
+
 		var components = URLComponents(url: proxyBaseURL, resolvingAgainstBaseURL: true)!
 		components.path = request.uri.path.isEmpty ? "/" : request.uri.path
 		if let query = request.uri.query {
 			components.query = query
 		}
 		guard let target = components.url else {
-			return Response(status: .badRequest)
+			return makeEmptyResponse(statusCode: 400, request: request)
 		}
 
 		if shouldCache(url: target), !alwaysRefetchCache, let entry = await cache.read(target) {
-			let headers = await cache.generateHeaders(for: target)
+			var headers = await cache.generateHeaders(for: target)
+			headers.merge(corsHeaders(for: request)) { _, corsValue in corsValue }
 			return makeResponse(body: entry.body, statusCode: entry.statusCode, headers: headers)
 		}
 
 		guard let (data, statusCode, contentType) = try? await fetch(target, request: request) else {
-			return Response(status: .internalServerError)
+			return makeEmptyResponse(statusCode: 500, request: request)
 		}
 
-		return makeResponse(body: data, statusCode: statusCode, headers: [:], contentType: contentType)
+		return makeResponse(
+			body: data,
+			statusCode: statusCode,
+			headers: corsHeaders(for: request),
+			contentType: contentType
+		)
+	}
+
+	private func corsHeaders(for request: Request, preflight: Bool = false) -> [String: String] {
+		guard let origin = request.headers.first(where: { $0.name.rawName.lowercased() == "origin" })?.value,
+			corsAllowedOrigins.contains(origin)
+		else {
+			return [:]
+		}
+
+		var headers = [
+			"Access-Control-Allow-Origin": origin,
+			"Access-Control-Allow-Credentials": "true",
+			"Vary": "Origin",
+		]
+
+		if preflight {
+			headers["Access-Control-Allow-Methods"] = allowedMethods
+			headers["Access-Control-Allow-Headers"] = request.headers.first {
+				$0.name.rawName.lowercased() == "access-control-request-headers"
+			}?.value ?? "Content-Type, Authorization"
+			headers["Access-Control-Max-Age"] = "86400"
+			if request.headers.first(where: {
+				$0.name.rawName.lowercased() == "access-control-request-private-network"
+			})?.value.lowercased() == "true" {
+				headers["Access-Control-Allow-Private-Network"] = "true"
+			}
+		}
+
+		return headers
+	}
+
+	private func makeHeaders(_ values: [String: String]) -> HTTPFields {
+		var headers = HTTPFields()
+		for (key, value) in values {
+			if let name = HTTPField.Name(key) {
+				headers.append(HTTPField(name: name, value: value))
+			}
+		}
+		return headers
+	}
+
+	private func makeEmptyResponse(statusCode: Int, request: Request) -> Response {
+		Response(
+			status: .init(code: statusCode),
+			headers: makeHeaders(corsHeaders(for: request))
+		)
 	}
 
 	private func makeResponse(body: Data, statusCode: Int, headers: [String: String]) -> Response {
@@ -39,7 +99,7 @@ struct ProxyHandler: Sendable {
 		}
 		let buffer = ByteBuffer(bytes: body)
 		return Response(
-			status: .init(code: max(200, statusCode)),
+			status: .init(code: statusCode),
 			headers: hbHeaders,
 			body: .init(byteBuffer: buffer)
 		)
@@ -59,7 +119,7 @@ struct ProxyHandler: Sendable {
 		}
 		let buffer = ByteBuffer(bytes: body)
 		return Response(
-			status: .init(code: max(200, statusCode)),
+			status: .init(code: statusCode),
 			headers: hbHeaders,
 			body: .init(byteBuffer: buffer)
 		)
