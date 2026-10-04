@@ -3,8 +3,10 @@ import Foundation
 // The URL the WebView opens through the local proxy.
 let startingURL = URL(string: "http://127.0.0.1:8080/")!
 
-// The origin the proxy forwards requests to.
-let proxyBaseURL = URL(string: "https://example.com")!
+// Upstream base URLs accepted for proxy routing. The first URL is the default origin.
+let proxyOrigins = [
+	URL(string: "https://example.com/")!
+]
 
 // Optional Common Name of the Keychain identity used to serve the proxy via HTTPS.
 let proxyCertificateCommonName: String? = nil

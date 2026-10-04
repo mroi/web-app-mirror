@@ -15,7 +15,21 @@ struct ProxyHandler: Sendable {
 			)
 		}
 
-		var components = URLComponents(url: proxyBaseURL, resolvingAgainstBaseURL: true)!
+		let upstreamBaseURL: URL
+		if let requestedOrigin = request.headers.first(where: {
+			$0.name.rawName.lowercased() == "x-proxy-origin"
+		})?.value {
+			guard let configuredOrigin = proxyOrigins.first(where: { origin(of: $0) == requestedOrigin }) else {
+				return makeEmptyResponse(statusCode: 400, request: request)
+			}
+			upstreamBaseURL = configuredOrigin
+		} else if let defaultOrigin = proxyOrigins.first {
+			upstreamBaseURL = defaultOrigin
+		} else {
+			return makeEmptyResponse(statusCode: 500, request: request)
+		}
+
+		var components = URLComponents(url: upstreamBaseURL, resolvingAgainstBaseURL: true)!
 		components.path = request.uri.path.isEmpty ? "/" : request.uri.path
 		if let query = request.uri.query {
 			components.query = query
@@ -69,6 +83,19 @@ struct ProxyHandler: Sendable {
 		}
 
 		return headers
+	}
+
+	private func origin(of url: URL) -> String? {
+		guard let components = URLComponents(url: url, resolvingAgainstBaseURL: false),
+			let scheme = components.scheme,
+			let host = components.host
+		else {
+			return nil
+		}
+
+		let formattedHost = host.contains(":") ? "[\(host)]" : host
+		let port = components.port.map { ":\($0)" } ?? ""
+		return "\(scheme)://\(formattedHost)\(port)"
 	}
 
 	private func makeHeaders(_ values: [String: String]) -> HTTPFields {
@@ -130,7 +157,7 @@ struct ProxyHandler: Sendable {
 		req.httpMethod = request.method.rawValue
 		req.timeoutInterval = 30
 
-		let skipHeaders: Set<String> = ["host", "connection", "transfer-encoding"]
+		let skipHeaders: Set<String> = ["host", "connection", "transfer-encoding", "x-proxy-origin"]
 		for header in request.headers {
 			let name = header.name.rawName.lowercased()
 			if !skipHeaders.contains(name) {
