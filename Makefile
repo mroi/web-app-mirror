@@ -12,13 +12,14 @@ endif
 
 all: $(BUNDLE)
 
-$(BUNDLE): build WebAppMirror.plist WebAppMirror.entitlements
+$(BUNDLE): %.app: build %.plist %.entitlements
 	rm -rf "$(BUNDLE)"
 	mkdir -p "$(BUNDLE)/Contents/MacOS"
 	mkdir -p "$(BUNDLE)/Contents/Resources"
-	cp "$(BUILDDIR)/WebAppMirror" "$(BUNDLE)/Contents/MacOS/WebAppMirror"
-	cp WebAppMirror.plist "$(BUNDLE)/Contents/Info.plist"
-	codesign --force --sign - --entitlements WebAppMirror.entitlements "$(BUNDLE)"
+	cp "$(BUILDDIR)/$*" "$(BUNDLE)/Contents/MacOS/"
+	cp "$(BUILDDIR)/$*_$*.bundle/Contents/Resources"/* "$(BUNDLE)/Contents/Resources/"
+	cp "$*.plist" "$(BUNDLE)/Contents/Info.plist"
+	codesign --force --sign - --entitlements "$*.entitlements" "$(BUNDLE)"
 
 build:
 	swift build $(BUILDARGS)

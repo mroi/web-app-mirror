@@ -30,8 +30,9 @@ struct WebContentView: View {
 @MainActor
 private func makeConfiguredWebPage() -> WebPage {
 	let configuration = WebPage.Configuration()
-	if !userCSS.isEmpty {
-		let cssLiteral = (try? String(data: JSONEncoder().encode(userCSS), encoding: .utf8)) ?? "\"\""
+	for filename in userCSSFiles {
+		let css = loadInjectionFile(filename)
+		let cssLiteral = (try? String(data: JSONEncoder().encode(css), encoding: .utf8)) ?? "\"\""
 		let script = """
 		(() => {
 			const style = document.createElement("style");
@@ -43,10 +44,19 @@ private func makeConfiguredWebPage() -> WebPage {
 			WKUserScript(source: script, injectionTime: .atDocumentEnd, forMainFrameOnly: false)
 		)
 	}
-	if !userJavaScript.isEmpty {
+	for filename in userJavaScriptFiles {
 		configuration.userContentController.addUserScript(
-			WKUserScript(source: userJavaScript, injectionTime: .atDocumentStart, forMainFrameOnly: false)
+			WKUserScript(source: loadInjectionFile(filename), injectionTime: .atDocumentStart, forMainFrameOnly: false)
 		)
 	}
 	return WebPage(configuration: configuration)
+}
+
+private func loadInjectionFile(_ filename: String) -> String {
+	guard let url = Bundle.main.url(forResource: filename, withExtension: nil),
+		let contents = try? String(contentsOf: url, encoding: .utf8)
+	else {
+		fatalError("Missing or unreadable injection resource: \(filename)")
+	}
+	return contents
 }

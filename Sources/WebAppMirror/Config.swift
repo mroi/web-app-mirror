@@ -6,15 +6,9 @@ let startingURL = URL(string: "http://127.0.0.1:8080/")!
 // The origin the proxy forwards requests to.
 let proxyBaseURL = URL(string: "https://example.com")!
 
-// Custom CSS injected into each page loaded by the WebView.
-let userCSS = """
-/* injected user CSS */
-"""
-
-// Custom JavaScript injected into each page and iframe after its document is parsed.
-let userJavaScript = """
-// injected user JavaScript
-"""
+// Custom CSS and JavaScript files in Sources/WebAppMirror/Resources to inject.
+let userCSSFiles = Array<String>()
+let userJavaScriptFiles = Array<String>()
 
 // URL path prefixes to cache. A URL is cached if its path starts with any of these.
 let cachePrefixes = [

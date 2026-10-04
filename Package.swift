@@ -11,6 +11,7 @@ let package = Package(
 		.executableTarget(
 			name: "WebAppMirror",
 			dependencies: [ .product(name: "Hummingbird", package: "hummingbird") ],
+			resources: [ .process("Resources") ],
 			linkerSettings: [ .linkedFramework("WebKit") ]
 		)
 	]
