@@ -12,12 +12,13 @@ endif
 
 all: $(BUNDLE)
 
-$(BUNDLE): %.app: build %.plist %.entitlements
+$(BUNDLE): %.app: build %.icns %.plist %.entitlements
 	rm -rf "$(BUNDLE)"
 	mkdir -p "$(BUNDLE)/Contents/MacOS"
 	mkdir -p "$(BUNDLE)/Contents/Resources"
 	cp "$(BUILDDIR)/$*" "$(BUNDLE)/Contents/MacOS/"
 	cp "$(BUILDDIR)/$*_$*.bundle/Contents/Resources"/* "$(BUNDLE)/Contents/Resources/"
+	cp "$*.icns" "$(BUNDLE)/Contents/Resources/AppIcon.icns"
 	cp "$*.plist" "$(BUNDLE)/Contents/Info.plist"
 	codesign --force --sign - --entitlements "$*.entitlements" "$(BUNDLE)"
 
