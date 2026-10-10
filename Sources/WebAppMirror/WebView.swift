@@ -15,6 +15,7 @@ struct WebContentView: View {
 				ProgressView("Starting...")
 			}
 		}
+		.focusedSceneValue(\.webPageForReload, page)
 		.windowFullScreenBehavior(.enabled)
 		.task {
 			appState.startProxy()

@@ -1,5 +1,6 @@
 import SwiftUI
 import Foundation
+import WebKit
 
 @main
 struct WebAppMirror: App {
@@ -11,9 +12,38 @@ struct WebAppMirror: App {
 			WebContentView().environment(appState)
 		}
 		.defaultSize(width: 960, height: 540 + 32)
+		.commands {
+			PageCommands()
+		}
 	}
 }
 
+private struct PageCommands: Commands {
+	@FocusedValue(\.webPageForReload) private var page
+
+	var body: some Commands {
+		CommandGroup(after: .newItem) {
+			Button("Reload") {
+				_ = page?.reload(fromOrigin: false)
+			}
+			.disabled(page == nil)
+			.keyboardShortcut("r", modifiers: .command)
+		}
+	}
+}
+
+struct WebPageForReloadKey: FocusedValueKey {
+	typealias Value = WebPage
+}
+
+extension FocusedValues {
+	var webPageForReload: WebPage? {
+		get { self[WebPageForReloadKey.self] }
+		set { self[WebPageForReloadKey.self] = newValue }
+	}
+}
+
+@MainActor
 final class AppDelegate: NSObject, NSApplicationDelegate {
 	func applicationShouldTerminateAfterLastWindowClosed(_ sender: NSApplication) -> Bool { true }
 }
